@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarot Định Hướng Nghề Nghiệp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mystic: ['"Playfair Display"', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        cosmic: {
+                            bg: '#0F0C29',
+                            mid: '#302B63',
+                            light: '#24243E',
+                            gold: '#D4AF37',
+                            goldlight: '#F3E5AB',
+                            accent: '#9D4EDD'
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+                        'card-flip': 'cardFlip 1s cubic-bezier(0.4, 0.2, 0.2, 1) forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-15px)' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 0.5, filter: 'blur(10px)' },
+                            '50%': { opacity: 1, filter: 'blur(15px)' },
+                        },
+                        cardFlip: {
+                            '0%': { transform: 'rotateY(90deg)', opacity: 0 },
+                            '100%': { transform: 'rotateY(0deg)', opacity: 1 },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0F0C29, #302B63, #24243E);
+            color: #E2E8F0;
+            overflow-x: hidden;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        
+        /* Starry background effect */
+        .stars {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 130px 80px, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            opacity: 0.3;
+            z-index: 0;
+            animation: moveStars 100s linear infinite;
+        }
+
+        @keyframes moveStars {
+            from { background-position: 0 0; }
+            to { background-position: -1000px 500px; }
+        }
+
+        .mystic-card {
+            background: rgba(36, 36, 62, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(212, 175, 55, 0.05);
+            border-radius: 20px;
+        }
+
+        .gold-text {
+            background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .gold-border {
+            border-image: linear-gradient(to right, #BF953F, #FCF6BA, #B38728) 1;
+        }
+
+        .option-btn {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.1), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .option-btn:hover::before { left: 100%; }
+        .option-btn:hover {
+            transform: translateY(-3px);
+            border-color: #D4AF37;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .screen { display: none; opacity: 0; transition: opacity 0.5s ease; }
+        .screen.active { display: flex; opacity: 1; }
+
+        .tarot-card-result {
+            width: 240px;
+            height: 380px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 2px solid #D4AF37;
+            border-radius: 12px;
+            padding: 15px;
+            position: relative;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3), inset 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+        .tarot-card-inner {
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjEyLCAxNzUsIDU1LCAwLjE1KSIvPjwvc3ZnPg==');
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center font-sans">
+
+    <div class="stars"></div>
+
+    <main class="relative z-10 w-full max-w-3xl p-4 sm:p-8">
+
+        <!-- HEADER -->
+        <header class="mb-10 text-center relative z-20">
+            <h2 class="font-mystic text-cosmic-goldlight tracking-[0.2em] text-xs sm:text-sm uppercase mb-2">Vũ Trụ Định Hướng</h2>
+            <div id="progress-dots" class="hidden justify-center gap-2 mt-4">
+                <div class="w-2 h-2 rounded-full border border-cosmic-gold dot-active bg-cosmic-gold transition-all"></div>
+                <div class="w-2 h-2 rounded-full border border-cosmic-gold transition-all"></div>
+                <div class="w-2 h-2 rounded-full border border-cosmic-gold transition-all"></div>
+                <div class="w-2 h-2 rounded-full border border-cosmic-gold transition-all"></div>
+            </div>
+        </header>
+
+        <!-- SCREEN 1: LANDING -->
+        <div id="screen-landing" class="screen active flex-col items-center text-center">
+            <div class="relative w-40 h-40 mb-8 animate-float flex justify-center items-center">
+                <div class="absolute inset-0 bg-cosmic-accent rounded-full opacity-20 blur-xl animate-pulse-glow"></div>
+                <div class="absolute inset-4 border-2 border-cosmic-gold rounded-full border-dashed opacity-50 animate-[spin_20s_linear_infinite]"></div>
+                <i class="fa-solid fa-moon text-6xl gold-text relative z-10"></i>
+                <i class="fa-solid fa-star text-sm text-white absolute top-6 right-8 animate-pulse"></i>
+                <i class="fa-solid fa-star text-xs text-white absolute bottom-8 left-6 animate-pulse" style="animation-delay: 1s;"></i>
+            </div>
+            
+            <h1 class="font-mystic text-4xl sm:text-5xl md:text-6xl font-bold mb-4 leading-tight">
+                Giải Mã <br> <span class="gold-text">Bản Thể Công Sở</span>
+            </h1>
+            
+            <p class="text-gray-300 font-light text-base sm:text-lg max-w-lg mx-auto mb-10 leading-relaxed">
+                Vũ trụ đã sắp đặt cho bạn một "siêu năng lực" ẩn giấu. Hãy rút 4 lá bài tình huống để khám phá kỹ năng mềm thiên bẩm và tìm ra con đường sự nghiệp trải đầy hoa hồng của riêng bạn.
+            </p>
+
+            <button onclick="startGame()" class="relative group overflow-hidden border border-cosmic-gold rounded-full px-10 py-4 font-mystic text-lg uppercase tracking-widest text-cosmic-gold hover:text-cosmic-bg transition-colors duration-300">
+                <span class="relative z-10 font-bold">Rút Lá Bài Đầu Tiên</span>
+                <div class="absolute inset-0 bg-cosmic-gold transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+            </button>
+        </div>
+
+        <!-- SCREEN 2: GAME / QUESTIONS -->
+        <div id="screen-game" class="screen flex-col w-full">
+            <div class="mystic-card p-6 sm:p-10 relative">
+                <!-- Decorative corners -->
+                <div class="absolute top-4 left-4 text-cosmic-gold opacity-50"><i class="fa-solid fa-clover"></i></div>
+                <div class="absolute top-4 right-4 text-cosmic-gold opacity-50"><i class="fa-solid fa-sparkles"></i></div>
+                
+                <h3 class="font-mystic text-center text-cosmic-accent text-sm tracking-widest uppercase mb-6" id="skill-category">Đánh giá kỹ năng mềm</h3>
+                
+                <h2 id="question-text" class="font-mystic text-2xl sm:text-3xl font-bold mb-8 text-center leading-relaxed text-white">
+                    Loading...
+                </h2>
+                
+                <div id="options-container" class="flex flex-col gap-4">
+                    <!-- Options injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 3: LOADING RESULT -->
+        <div id="screen-loading" class="screen flex-col items-center justify-center py-20">
+            <div class="relative w-32 h-32 mb-8 flex justify-center items-center">
+                <i class="fa-solid fa-sun text-6xl gold-text animate-[spin_10s_linear_infinite]"></i>
+                <div class="absolute inset-0 border-t-2 border-r-2 border-cosmic-accent rounded-full animate-[spin_2s_linear_infinite]"></div>
+            </div>
+            <h3 class="font-mystic text-3xl font-bold mb-3 gold-text">Vũ trụ đang kết nối...</h3>
+            <p class="text-gray-400 font-light italic">Đang giải mã hệ gen kỹ năng của bạn</p>
+        </div>
+
+        <!-- SCREEN 4: RESULTS -->
+        <div id="screen-result" class="screen flex-col items-center w-full">
+            <div class="flex flex-col md:flex-row gap-8 items-center md:items-start w-full">
+                
+                <!-- The Tarot Card -->
+                <div class="tarot-card-result animate-card-flip shrink-0">
+                    <div class="tarot-card-inner">
+                        <span class="font-mystic text-xs tracking-widest text-cosmic-gold mb-4 uppercase">Archetype</span>
+                        <div class="w-24 h-24 rounded-full border border-cosmic-gold flex items-center justify-center mb-6 relative">
+                            <div class="absolute inset-0 bg-cosmic-gold opacity-10 rounded-full blur-md"></div>
+                            <i id="result-icon" class="fa-solid fa-hat-wizard text-5xl gold-text"></i>
+                        </div>
+                        <h2 id="result-title" class="font-mystic text-2xl text-center gold-text font-bold uppercase tracking-widest leading-tight">THE MAGICIAN</h2>
+                        <div class="w-12 h-px bg-cosmic-gold my-4 opacity-50"></div>
+                        <p id="result-subtitle" class="font-mystic text-sm text-gray-300 text-center italic px-2">Nhà kiến tạo rực rỡ</p>
+                    </div>
+                </div>
+
+                <!-- Interpretation text -->
+                <div class="mystic-card p-6 sm:p-8 flex-1 w-full animate-[fadeInUp_1s_ease_0.5s_forwards] opacity-0" style="animation-name: fadeInUp;">
+                    <h3 class="font-mystic text-2xl gold-text mb-4 border-b border-cosmic-gold/30 pb-2">Thông điệp vũ trụ</h3>
+                    <p id="result-desc" class="text-gray-300 font-light leading-relaxed mb-6">
+                        Mô tả tính cách ở đây...
+                    </p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-black/30 rounded-xl p-4 border border-white/5">
+                            <div class="flex items-center gap-2 mb-2 text-green-400">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span class="font-bold text-sm uppercase tracking-wider">Siêu Năng Lực (Soft Skills)</span>
+                            </div>
+                            <ul id="result-skills" class="text-sm text-gray-400 space-y-1 list-disc list-inside">
+                                <li>Sáng tạo</li>
+                                <li>Thích nghi</li>
+                            </ul>
+                        </div>
+                        <div class="bg-black/30 rounded-xl p-4 border border-white/5">
+                            <div class="flex items-center gap-2 mb-2 text-cosmic-gold">
+                                <i class="fa-solid fa-compass"></i>
+                                <span class="font-bold text-sm uppercase tracking-wider">Nghề Nghiệp Chân Ái</span>
+                            </div>
+                            <ul id="result-jobs" class="text-sm text-gray-400 space-y-1 list-disc list-inside">
+                                <li>Marketing</li>
+                                <li>Design</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <button onclick="location.reload()" class="w-full py-3 border border-cosmic-gold/50 rounded-lg text-cosmic-gold hover:bg-cosmic-gold hover:text-black transition-colors font-mystic tracking-widest uppercase text-sm">
+                        Rút lại trải bài khác
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <style>
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(20px); }
+        }
+    </style>
+
+    <script>
+        // Quiz Data - Assessing Soft Skills to map to Archetypes
+        // Archetypes: 
+        // 1. magician (Creative/Adaptable) -> Marketing, Design, Content
+        // 2. emperor (Leadership/Logic) -> Management, Data, BA
+        // 3. star (EQ/Empathy/Social) -> HR, Sales, PR
+        // 4. hermit (Focus/Detail/Analysis) -> IT, Research, Accountant
+        
+        const questions = [
+            {
+                category: "Lá Bài Số 1: Khủng Hoảng (Kỹ năng quản lý áp lực)",
+                question: "Deadline chỉ còn 3 tiếng, nhưng sếp yêu cầu đổi toàn bộ concept. Bạn sẽ phản ứng thế nào?",
+                options: [
+                    { text: "Bật mode 'não phải', nhanh chóng vẽ ra một luồng ý tưởng mới toanh và chốt lẹ.", type: "magician", icon: "fa-wand-magic-sparkles" },
+                    { text: "Phân tích lại quỹ thời gian, chia task cụ thể cho từng người trong team để kịp tiến độ.", type: "emperor", icon: "fa-chess-king" },
+                    { text: "Pha một ly trà, động viên tinh thần anh em trước để không ai bị hoảng loạn.", type: "star", icon: "fa-heart" },
+                    { text: "Tắt thông báo, đeo tai nghe chống ồn, chìm vào góc tối và code/viết điên cuồng.", type: "hermit", icon: "fa-book-skull" }
+                ]
+            },
+            {
+                category: "Lá Bài Số 2: Đồng Minh (Kỹ năng làm việc nhóm)",
+                question: "Khi làm việc trong một tập thể, mọi người thường tìm đến bạn để...",
+                options: [
+                    { text: "Gỡ rối những rắc rối về mặt chuyên môn, kỹ thuật hoặc những file excel tỷ dòng.", type: "hermit", icon: "fa-magnifying-glass-chart" },
+                    { text: "Cần những idea 'điên rồ', đột phá, thoát khỏi lối mòn cũ rích.", type: "magician", icon: "fa-lightbulb" },
+                    { text: "Đứng ra phân xử mâu thuẫn hoặc cần người đại diện trình bày với cấp trên.", type: "emperor", icon: "fa-scale-balanced" },
+                    { text: "Tâm sự mỏng, xả stress vì bạn luôn biết lắng nghe và thấu hiểu mọi người.", type: "star", icon: "fa-mug-hot" }
+                ]
+            },
+            {
+                category: "Lá Bài Số 3: Ẩn Số (Khả năng học hỏi & Thích nghi)",
+                question: "Bị sếp ném cho một task hoàn toàn mới chưa từng học qua. Bạn làm gì đầu tiên?",
+                options: [
+                    { text: "Lên mạng tìm ai đó giỏi lĩnh vực này để mời cafe nhờ tư vấn/dạy luôn.", type: "star", icon: "fa-comments" },
+                    { text: "Đọc tài liệu chuyên sâu từ đầu chí cuối, hiểu tận gốc rễ rồi mới bắt tay vào làm.", type: "hermit", icon: "fa-book-journal-whills" },
+                    { text: "Lập ngay một khung quy trình (framework) những thứ cần làm để kiểm soát rủi ro.", type: "emperor", icon: "fa-sitemap" },
+                    { text: "Cứ làm thử đi, sai đến đâu sửa đến đó, quan trọng là ra được bản nháp nhanh nhất.", type: "magician", icon: "fa-meteor" }
+                ]
+            },
+            {
+                category: "Lá Bài Số 4: Đích Đến (Động lực nghề nghiệp)",
+                question: "Cuối ngày, cảm giác nào khiến bạn thấy công việc hôm nay thật sự ý nghĩa?",
+                options: [
+                    { text: "Đã truyền cảm hứng và giúp đỡ được đồng nghiệp/khách hàng giải quyết vướng mắc.", type: "star", icon: "fa-face-smile" },
+                    { text: "Nhìn thấy mọi thứ vận hành trơn tru theo đúng kế hoạch và mục tiêu đề ra.", type: "emperor", icon: "fa-check-double" },
+                    { text: "Tạo ra được một sản phẩm/nội dung cực kỳ 'nghệ', độc nhất vô nhị.", type: "magician", icon: "fa-palette" },
+                    { text: "Tìm ra được nguyên nhân cốt lõi của một lỗi (bug) mà cả tuần không ai giải được.", type: "hermit", icon: "fa-puzzle-piece" }
+                ]
+            }
+        ];
+
+        const results = {
+            magician: {
+                title: "THE MAGICIAN",
+                subtitle: "Nhà Kiến Tạo Đột Phá",
+                desc: "Như một 'Ảo thuật gia', bạn sở hữu tư duy mở, khả năng sáng tạo vô hạn và sự linh hoạt đáng kinh ngạc. Bạn ghét sự lặp đi lặp lại. Khi gặp biến cố, thay vì hoảng sợ, bạn biến nó thành sân khấu để phô diễn sự ứng biến của mình.",
+                icon: "fa-hat-wizard",
+                skills: ["Tư duy sáng tạo (Creative Thinking)", "Thích nghi nhanh (Adaptability)", "Giải quyết vấn đề linh hoạt"],
+                jobs: ["Marketing / Content Creator", "Graphic/UI-UX Designer", "Tổ chức sự kiện (Event)"]
+            },
+            emperor: {
+                title: "THE EMPEROR",
+                subtitle: "Bậc Thầy Chiến Lược",
+                desc: "Lá bài của một nhà cầm quân. Bạn đại diện cho sự kỷ luật, tư duy logic và khả năng tổ chức tuyệt vời. Trong đám đông hoảng loạn, bạn là mỏ neo giữ mọi người lại, phân chia công việc rành mạch và luôn nhìn thấy bức tranh toàn cảnh.",
+                icon: "fa-chess-king",
+                skills: ["Lãnh đạo & Tổ chức (Leadership)", "Quản lý thời gian", "Tư duy phản biện (Critical Thinking)"],
+                jobs: ["Quản lý dự án (Project Manager)", "Business Analyst (BA)", "Logistics / Vận hành"]
+            },
+            star: {
+                title: "THE STAR",
+                subtitle: "Ngôi Sao Kết Nối",
+                desc: "Bạn mang năng lượng chữa lành và kết nối. Trí tuệ cảm xúc (EQ) của bạn cực cao, giúp bạn dễ dàng thấu hiểu, thuyết phục và tạo thiện cảm với người khác. Bạn là 'chất keo' gắn kết tập thể và là đại sứ tuyệt vời của bất kỳ thương hiệu nào.",
+                icon: "fa-star",
+                skills: ["Trí tuệ cảm xúc (EQ)", "Giao tiếp & Thuyết phục", "Làm việc nhóm (Teamwork)"],
+                jobs: ["Nhân sự (HR)", "Sales / Chăm sóc khách hàng", "PR / Quan hệ công chúng"]
+            },
+            hermit: {
+                title: "THE HERMIT",
+                subtitle: "Nhà Thông Thái Ẩn Danh",
+                desc: "Sâu sắc, cẩn trọng và tập trung cao độ. Bạn không thích sự ồn ào mà thiên về làm việc độc lập, đào sâu nghiên cứu. Khả năng phân tích chi tiết và tập trung vào dữ liệu của bạn khiến người khác phải nể phục.",
+                icon: "fa-lantern",
+                skills: ["Phân tích dữ liệu (Analytical)", "Tập trung sâu (Deep Work)", "Nghiên cứu & Tự học"],
+                jobs: ["IT / Software Engineer", "Data Analyst", "Kế toán / Kiểm toán / R&D"]
+            }
+        };
+
+        let currentQuestionIndex = 0;
+        let scores = { magician: 0, emperor: 0, star: 0, hermit: 0 };
+        const dots = document.getElementById('progress-dots');
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.remove('active');
+            });
+            setTimeout(() => {
+                document.getElementById(screenId).classList.add('active');
+            }, 50);
+        }
+
+        function startGame() {
+            switchScreen('screen-game');
+            dots.classList.remove('hidden');
+            dots.classList.add('flex');
+            renderQuestion();
+        }
+
+        function updateProgress() {
+            Array.from(dots.children).forEach((dot, index) => {
+                if (index <= currentQuestionIndex) {
+                    dot.classList.add('bg-cosmic-gold');
+                } else {
+                    dot.classList.remove('bg-cosmic-gold');
+                }
+            });
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestionIndex];
+            
+            const qText = document.getElementById('question-text');
+            const qCategory = document.getElementById('skill-category');
+            const optionsContainer = document.getElementById('options-container');
+            
+            // Fade out
+            qText.style.opacity = 0;
+            optionsContainer.style.opacity = 0;
+            qCategory.style.opacity = 0;
+            
+            setTimeout(() => {
+                qCategory.innerText = q.category;
+                qText.innerText = q.question;
+                
+                optionsContainer.innerHTML = '';
+                q.options.forEach((opt) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn border border-cosmic-gold/30 bg-black/40 text-left p-4 sm:p-5 rounded-xl flex items-start sm:items-center gap-4 text-gray-200 z-10';
+                    btn.onclick = () => selectOption(opt.type);
+                    btn.innerHTML = `
+                        <div class="w-10 h-10 rounded-full border border-cosmic-gold/50 flex items-center justify-center shrink-0 text-cosmic-gold mt-1 sm:mt-0">
+                            <i class="fa-solid ${opt.icon}"></i>
+                        </div>
+                        <span class="text-sm sm:text-base font-light leading-relaxed">${opt.text}</span>
+                    `;
+                    optionsContainer.appendChild(btn);
+                });
+
+                // Fade in
+                qText.style.transition = 'opacity 0.5s ease';
+                optionsContainer.style.transition = 'opacity 0.5s ease';
+                qCategory.style.transition = 'opacity 0.5s ease';
+                qText.style.opacity = 1;
+                optionsContainer.style.opacity = 1;
+                qCategory.style.opacity = 1;
+
+                updateProgress();
+            }, 300);
+        }
+
+        function selectOption(type) {
+            scores[type]++;
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                renderQuestion();
+            } else {
+                finishGame();
+            }
+        }
+
+        function finishGame() {
+            switchScreen('screen-loading');
+            dots.style.display = 'none';
+
+            setTimeout(() => {
+                calculateAndShowResult();
+            }, 2500);
+        }
+
+        function calculateAndShowResult() {
+            let maxType = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+            if(scores[maxType] === 0) maxType = 'magician'; // default fallback
+
+            const res = results[maxType];
+
+            document.getElementById('result-title').innerText = res.title;
+            document.getElementById('result-subtitle').innerText = res.subtitle;
+            document.getElementById('result-desc').innerText = res.desc;
+            document.getElementById('result-icon').className = `fa-solid ${res.icon} text-5xl gold-text`;
+            
+            // Render skills
+            const skillsList = document.getElementById('result-skills');
+            skillsList.innerHTML = res.skills.map(skill => `<li>${skill}</li>`).join('');
+            
+            // Render jobs
+            const jobsList = document.getElementById('result-jobs');
+            jobsList.innerHTML = res.jobs.map(job => `<li>${job}</li>`).join('');
+
+            switchScreen('screen-result');
+        }
+    </script>
+</body>
+</html>
